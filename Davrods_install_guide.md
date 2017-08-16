@@ -58,7 +58,7 @@ We are using an iRODS 4.1.10 server, please note that the installation of Davrod
  ```
  - Check the firewall and save it
  
- ```  
+ ```sh
    sudo iptables -L
    sudo service iptables save
  ```
@@ -75,7 +75,6 @@ We are using an iRODS 4.1.10 server, please note that the installation of Davrod
 In this section we will follow the [iRODS documentation - Section Server SSL Setup](https://docs.irods.org/4.1.10/manual/authentication/).
 
 1. **Generate the SSL key and certificate** on the server that runs iRODS
- 
  ```sh
  sudo su - irods
  mkdir /etc/irods/ssl
@@ -84,6 +83,7 @@ In this section we will follow the [iRODS documentation - Section Server SSL Set
  chmod 600 irods.key
  openssl req -new -x509 -key irods.key -out irods.crt -days 365
  ```
+ 
  You are asked to provide some details. Upon login your users will have to use the common name of the server:
  
  ```sh
@@ -97,7 +97,7 @@ Email Address []:<email>
  ```
  The common name will also be used by Davrods to address the iRODS server. 
  
- ```
+ ```sh
  openssl dhparam -2 -out dhparams.pem 2048
  ```
  
@@ -110,7 +110,7 @@ Email Address []:<email>
 
  You need to set the server certificate (*irods.crt*) and its corresponding key (*irods.key*) and the certfificate from the "Certificate Authority" (here we use again *irods.crt* (usually you would have a *chain.pem*), if you use a different authority make sure all machines that run clients have this file installed). We also need to set the file defining how keys are exchanged (*dhparams.pem*). Finally we need to tell iRODS that we are using ssll verification by certificate.
  
- ```
+ ```sh
  vi /var/lib/irods/.irods/irods_environment.json #ubuntu
  vi /home/irods/.irods/irods_environment.json #centos
  
@@ -152,75 +152,75 @@ Email Address []:<email>
 ## 2. Install Davrods
 1. **Installation requirements:**
  
-iRODS runtime 4.1.10
+ iRODS runtime 4.1.10
 
-```sh
-export SERVERPATH='ftp.renci.org/pub/irods/releases'
-wget \
-ftp://$SERVERPATH/4.1.10/centos7/irods-runtime-4.1.10-centos7-x86_64.rpm
-sudo yum install irods-runtime-4.1.10-centos7-x86_64.rpm
-```
+ ```sh
+ export SERVERPATH='ftp.renci.org/pub/irods/releases'
+ wget \
+ ftp://$SERVERPATH/4.1.10/centos7/irods-runtime-4.1.10-centos7-x86_64.rpm
+ sudo yum install irods-runtime-4.1.10-centos7-x86_64.rpm
+ ```
 
 2. **Install the Apache HTTP server**
 
-```sh
-sudo yum install httpd
-sudo service httpd start
-```
-Test whether the httpd service runs by opening a browser and typing in the fully qualified domain name of your server or its ip address. Make sure port 80 is open.
+ ```sh
+ sudo yum install httpd
+ sudo service httpd start
+ ```
+ Test whether the httpd service runs by opening a browser and typing in the fully qualified domain name of your server or its ip address. Make sure port 80 is open.
  
 3. **Download and install Davrods**
  
-```sh
-export SERVERPATH='github.com/UtrechtUniversity/davrods/releases'
-wget https://$SERVERPATH/download/4.1_1.1.1/davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
-sudo yum install davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
-```
+ ```sh
+ export SERVERPATH='github.com/UtrechtUniversity/davrods/releases'
+ wget https://$SERVERPATH/download/4.1_1.1.1/davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
+ sudo yum install davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
+ ```
  
-Since our Davrods will work with SSL you will also need to install the corresponding SSL package for the Apache HTTP server (skip if you do not use encryption):
+ Since our Davrods will work with SSL you will also need to install the corresponding SSL package for the Apache HTTP server (skip if you do not use encryption):
  
-```sh
-sudo yum install mod_ssl
-```
+ ```sh
+ sudo yum install mod_ssl
+ ```
 
 4. **Edit the /etc/httpd/conf.d/davrods-vhost.conf**
-Remove the first comment of each line starting at line 8.
+ Remove the first comment of each line starting at line 8.
  
-- Since we would like to use HTTPS instead of HTTP we need to tell the HTTP server to use port 443:
- ```sh
- <VirtualHost *:80> # for normal http
- ```
- needs to become 
+ - Since we would like to use HTTPS instead of HTTP we need to tell the HTTP server to use port 443:
+  ```sh
+  <VirtualHost *:80> # for normal http
+  ```
+  needs to become 
   
- ```sh
- <VirtualHost *:443> # for https, when you enabled iRODS with SSL
- ```
-- We need to set the server name for the HTTP server in the next line
+  ```sh
+  <VirtualHost *:443> # for https, when you enabled iRODS with SSL
+  ```
+ - We need to set the server name for the HTTP server in the next line
   
- ```sh
- ServerName <FQDN or IP address of the HTTP server>
- ```
-- Next we need to tell the httpd server where to find the certificates for the SSL encryption.
- ```
- SSLEngine on # only when using SSL
- SSLCertificateFile "/etc/irods/ssl/irods.crt"
- SSLCertificateKeyFile "/etc/irods/ssl/irods.key"
- ```
- **NOTE:** We are reusing the certificates we generated for iRODS since iRODS and the HTTP server are running on the same machine. If you deploy Davrods on a separate machine, you need to create new certificates for that machine (matching the fqdn or IP address of that machine).
+  ```sh
+  ServerName <FQDN or IP address of the HTTP server>
+  ```
+ - Next we need to tell the httpd server where to find the certificates for the SSL encryption.
+  ```sh
+  SSLEngine on # only when using SSL
+  SSLCertificateFile "/etc/irods/ssl/irods.crt"
+  SSLCertificateKeyFile "/etc/irods/ssl/irods.key"
+  ```
+  **NOTE:** We are reusing the certificates we generated for iRODS since iRODS and the HTTP server are running on the same machine. If you deploy Davrods on a separate machine, you need to create new certificates for that machine (matching the fqdn or IP address of that machine).
    
-- If you used a different zone name than the standard zone name you need to change
- ```sh
+ - If you used a different zone name than the standard zone name you need to change
+  ```sh
           #DavRodsZone tempZone
- ```
- to
+  ```
+  to
   
- ```sh
+  ```sh
           DavRodsZone <yourZone>
- ```
-- Uncomment the line
- ```sh
- #DavRodsExposedRoot User
- ```
+  ```
+ - Uncomment the line
+  ```sh
+  #DavRodsExposedRoot User
+  ```
 
 5. **Edit the /etc/httpd/irods/irods_environment.json**
  - Replace the "irods_host" with the server name defined in the SSL step
@@ -258,7 +258,7 @@ Remove the first comment of each line starting at line 8.
     "irods_transfer_buffer_size_for_parallel_transfer_in_megabytes": 4,
     "irods_ssl_ca_certificate_file": "/etc/irods/ssl/irods.crt",
     "irods_ssl_verify_server": "cert"
-}
+ }
  ```
  
  b) Example iRODS environment file for an iRODS server not enabled with SSL:
@@ -287,7 +287,7 @@ Remove the first comment of each line starting at line 8.
     "irods_default_number_of_transfer_threads": 4,
     "irods_transfer_buffer_size_for_parallel_transfer_in_megabytes": 4,
     "irods_ssl_verify_server": "hostname"
-}
+ }
  ```
  
  Now restart the Apache HTTP server:
@@ -332,7 +332,7 @@ Remove the first comment of each line starting at line 8.
 2. **Remark**
  Every time you change the user data base you need to do a restart of the httpd server to fetch the changes:
  
- ```
+ ```sh
  sudo service httpd restart
  ```
 3. **Remark**
