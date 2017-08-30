@@ -1,4 +1,4 @@
-# Installation of Metalnx on Ubuntu 14.04
+# Installation of Metalnx on Ubuntu 14.04 and Ubuntu 16.04
 This document describes how to install Metalnx on a Ubuntu machine with a working iRODS instance on the same machine. Note that this document closely follows the "Getting Started" page on the GitHub of metalnx-web with some adjustments: 
 
 https://github.com/Metalnx/metalnx-web/wiki/Getting-Started
@@ -152,7 +152,7 @@ Test whether Tomcat7 is installed and reachable by openening a  browser and goin
 
 
 #### PostgreSQL 9.2 or higher
-Since we install Metalynx on the same server than our iRODS server is running on, you should already have a PostgreSQL data base version 9.3.
+If you install Metalynx on the same server as where the iRODS server is running on, you probably already have a PostgreSQL data base version 9.3.
 
 If you are working on a different machine then please install:
 
@@ -182,7 +182,7 @@ host	all 	all 	127.0.0.1/32		md5
 host	all 	all 	::1/128				md5
 ```
 
-It could be that this is already done correctly during the iRODS installation.
+Again, it could be that this is already done correctly during the iRODS installation.
 
 
 #### MySQL installation
@@ -215,6 +215,7 @@ sudo apt-get install python-mysqldb
 
 
 ### 3. Install Metalnx
+
 #### PostgreSQL
 Become the user ```postgres``` using the command:
 
@@ -245,6 +246,7 @@ Open ```/etc/irods/core.re``` in a text editor. Warning: be very carefull with t
 with 
 
 ```acPreConnect(*OUT) { *OUT="CS_NEG_REFUSE"; }```
+
 
 #### Package Installation
 
