@@ -6,7 +6,7 @@ https://github.com/Metalnx/metalnx-web/wiki/Getting-Started
 ## Environment
 Ubuntu 14.04 server
 
-##Prerequisites
+## Prerequisites
 
 ### 1. Update and upgrade if necessary
 ```sh
@@ -204,7 +204,7 @@ host	all 	all 	::1/128				md5
 It could be that this is already done correctly during the iRODS installation.
 
 ### 3. Install Metalnx
-####PostgreSQL
+#### PostgreSQL
 Become the user ```postgres``` using the command:
 
 ```sh
