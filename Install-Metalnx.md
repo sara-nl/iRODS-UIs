@@ -170,7 +170,7 @@ sudo apt-get install python-mysqldb
 ```
 
 
-####PostgreSQL 9.2 or higher
+#### PostgreSQL 9.2 or higher
 Since we install Metalynx on the same server than our iRODS server is running on, you should already have a PostgreSQL data base version 9.3.
 
 If you are working on a different machine then please install:
@@ -222,7 +222,7 @@ GRANT ALL PRIVILEGES ON DATABASE "metalnx" TO metalnx;
 exit
 ```
 
-####Set iRODS Negotiation
+#### Set iRODS Negotiation
 Before running the Metalnx setup script, make sure your iRODS negotiation parameters are correct. By default, iRODS is configured as  ```CS_NEG_DONT_CARE``` in the ```core.re``` file, which means that the server can use SSL or not to communicate with the client. ```CS_NEG_REQUIRE``` and ```CS_NEG_REFUSE``` can also be used. ```CS_NEG_REQUIRE``` means that iRODS will always use SSL communication while ```CS_NEG_REFUSE``` tells iRODS not to use SSL at all. 
 
 For now we will not use SSL. We will change the ```core.re``` file directly (note that in the "Getting Started" page of the Metalnx wiki, other options are presented). 
@@ -235,7 +235,7 @@ with
 
 ```acPreConnect(*OUT) { *OUT="CS_NEG_REFUSE"; }```
 
-####Package Installation
+#### Package Installation
 
 ```sh
 wget -O emc-metalnx-webapp-1.1.1-3.deb https://bintray.com/metalnx/deb/download_file?file_path=pool%2Fe%2Femc-metalnx-web%2Femc-metalnx-webapp-1.1.1-3.deb
@@ -249,7 +249,7 @@ sudo dpkg -i emc-metalnx-webapp-1.X.X-X.noarch.deb
 
 Note the 'X' in the name of the ```.deb``` file, which should be replaced with the correct version number of Metalnx you downloaded.
 
-####Setup Metalnx
+#### Setup Metalnx
 The Metalnx installation package comes with a setup script. The script will help to setup the Metalnx in according to your environment. Once the rpm or deb package is installed, run the Metalnx setup script, as root:
 
 ```sh
@@ -399,7 +399,7 @@ Normal rodsusers will have access to all their collections and files. Users will
 
 Admin users have more functionaly and can view the resource tree, add resources, add/modify users, add/modify groups and of course everything normal users can do.
 
-####Some quirks
+#### Some quirks
 - Folders can not be added at once via the Metalnx interface. 
 - When selecting a data object, almost every action does not work except for the action 'remove'. 
 - Download (iget) of data objects also does not work and only shows a new empty tab with the suffix 'fileOperation/download/'. 
