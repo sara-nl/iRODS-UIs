@@ -237,8 +237,11 @@ exit
 #### Set iRODS Negotiation
 Before running the Metalnx setup script, make sure your iRODS negotiation parameters are correct. By default, iRODS is configured as  ```CS_NEG_DONT_CARE``` in the ```core.re``` file, which means that the server can use SSL or not to communicate with the client. ```CS_NEG_REQUIRE``` and ```CS_NEG_REFUSE``` can also be used. ```CS_NEG_REQUIRE``` means that iRODS will always use SSL communication while ```CS_NEG_REFUSE``` tells iRODS not to use SSL at all. 
 
+<!--
 For now we will not use SSL. We will change the ```core.re``` file directly (note that in the "Getting Started" page of the Metalnx wiki, other options are presented). 
+-->
 
+##### No SSL
 Open ```/etc/irods/core.re``` in a text editor. Warning: be very carefull with the file as it can break your iRODS instance very easily. Replace:
 
 ```acPreConnect(*OUT) { *OUT="CS_NEG_DONT_CARE"; }```
@@ -246,6 +249,97 @@ Open ```/etc/irods/core.re``` in a text editor. Warning: be very carefull with t
 with 
 
 ```acPreConnect(*OUT) { *OUT="CS_NEG_REFUSE"; }```
+
+
+Also, adjust the environment-json:
+
+```sh
+ vi /home/rods/.irods/irods_environment.json
+ 
+ ...
+ "irods_client_server_policy": "CS_NEG_REFUSE",
+ ...
+ ```
+
+##### Using SSL
+If you want to use SSL, you first have to configure iRODS with SSL.
+
+1. **Generate the SSL key and certificate** on the server that runs iRODS.
+Remember the names you gave to the files: `irods.key`, `irods.crt`. Also note that you can change the number of days (now 365) for the certificate. In this example, the user is called 'rods'. 
+
+```sh
+ sudo su - rods
+ mkdir /etc/irods/ssl
+ cd /etc/irods/ssl
+ openssl genrsa -out irods.key 2048
+ chmod 600 irods.key
+ openssl req -new -x509 -key irods.key -out irods.crt -days 365
+ ```
+ 
+  
+ You are asked to provide some details. Upon login your users will have to use the common name of the server:
+ 
+ ```sh
+ Country Name (2 letter code) [XX]:XX
+State or Province Name (full name) []:<your state>
+Locality Name (eg, city) [Default City]:<your city>
+Organization Name (eg, company) [Default Company Ltd]:<company>
+Organizational Unit Name (eg, section) []:<group>
+Common Name (eg, your name or your server's hostname) []:<ip address or fqdn>
+Email Address []:<email>
+ ```
+And finally create the dhparams.pem file. 
+ 
+ ```sh
+ openssl dhparam -2 -out dhparams.pem 2048
+ ```
+ 
+2. **Adjust the /etc/irods/core.re** with
+ 
+ ```sh
+ acPreConnect(*OUT) { *OUT="CS_NEG_REQUIRE"; }
+ ```
+3. **Adjust the environment-json for the irods service account.**
+
+ You need to set the server certificate (*irods.crt*) and its corresponding key (*irods.key*) and the certificate from the "Certificate Authority" (here we use again *irods.crt* (usually you would have a *chain.pem*), if you use a different authority make sure all machines that run clients have this file installed). We also need to set the file defining how keys are exchanged (*dhparams.pem*). Finally we need to tell iRODS that we are using ssl verification by certificate.
+ 
+ ```sh
+ vi /home/rods/.irods/irods_environment.json
+ 
+ "irods_client_server_policy": "CS_NEG_REQUIRE",
+ "irods_ssl_certificate_chain_file": "/etc/irods/ssl/irods.crt",
+ "irods_ssl_certificate_key_file": "/etc/irods/ssl/irods.key",
+ "irods_ssl_dh_params_file": "/etc/irods/ssl/dhparams.pem",
+ "irods_ssl_ca_certificate_file": "/etc/irods/ssl/irods.crt",
+ "irods_ssl_verify_server": "cert"
+ ```
+ Make sure common name of the server in the certificate and the *irods_host* in the environment json file match.
+ Then try as a rodsuser/rodsadmin whether you can login:
+ 
+ ```sh
+ iinit
+ ils
+ ```
+ 
+ If the connections fails due to the SSL connection, check if all files are set correctly in the environment-json and core.re file.
+ 
+ ##### SSL and Metalnx
+ For Metalnx, we need to tell the Java Virtual Machine to trust the irods certificate created earlier. This can be done by running the following command (note that you will be asked to create a password):
+
+```sh
+cd /etc/irods/ssl
+keytool -import -alias irodscertificate -file /etc/irods/ssl/irods.crt -keystore
+```
+
+The command above will create a keystore called *irodskeystore* in ```/etc/irods/ssl```. This keystore is necessary for the ```setup_script.py``` to check whether or not Metalnx can securely connect to iRODS.
+
+Finally, there is only one configuration to be done. Specify to Tomcat where the *irodskeystore* file is, so the Metalnx Web server is able to communicate with iRODS using SSL. To do so, modify the ```JAVA_OPTS``` option in the file ```/etc/default/tomcat7```:
+
+```sh
+JAVA_OPTS="-Djavax.net.ssl.trustStore=/etc/irods/ssl/irodskeystore -Djavax.net.ssl.trustStorePassword=<keystore-password>"
+```
+
+Don't forget to replace ```<keystore-password>``` with the password you created earlier.
 
 
 #### Package Installation
