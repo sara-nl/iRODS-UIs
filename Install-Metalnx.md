@@ -150,25 +150,6 @@ sudo service tomcat7 restart
 Test whether Tomcat7 is installed and reachable by openening a  browser and going to the page:
 `http://<ip-address of server\>:8080`
 
-#### MySQL installation
-We need a MySQL server 5.6 or higher. In Ubuntu 16 these packages are not part of the standard sowftare packages.
-
-```sh
-#Ubuntu 16
-apt-get install software-properties-common 
-sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty universe'
-sudo apt-get update
-#Ubuntu 14 and 16
-sudo apt install mysql-server-5.6
-sudo apt install mysql-client-5.6
-```
-
-Also install mysqldv:
-
-```sh
-sudo apt-get install python-mysqldb
-```
-
 
 #### PostgreSQL 9.2 or higher
 Since we install Metalynx on the same server than our iRODS server is running on, you should already have a PostgreSQL data base version 9.3.
@@ -202,6 +183,36 @@ host	all 	all 	::1/128				md5
 ```
 
 It could be that this is already done correctly during the iRODS installation.
+
+
+#### MySQL installation
+During the Metalnx setup script you can choose to either use PostgreSQL or MySQL for the Metalnx Database. Here we choose PostgreSQL. However, if you want to use MySQL, you should install MySQL server 5.6 or higher. Note that the instructions to set up the MySQL database can be followed on the Metalnx 'Getting Started' pages. In Ubuntu 16 these packages are not part of the standard software packages. So for Ubuntu 16 you have to add it to the repository:
+
+```sh
+#Ubuntu 16
+apt-get install software-properties-common 
+sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty universe'
+sudo apt-get update
+```
+
+And subsequently install MySQL server and client, which is the same command for Ubuntu 14 and 16:
+
+```sh
+#Ubuntu 14 and 16
+sudo apt install mysql-server-5.6
+sudo apt install mysql-client-5.6
+```
+
+Also install mysqldv:
+
+```sh
+sudo apt-get install python-mysqldb
+```
+
+
+
+
+
 
 ### 3. Install Metalnx
 #### PostgreSQL
