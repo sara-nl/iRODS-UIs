@@ -5,6 +5,10 @@ Matthew Saum (SURFsara)
 
 Christine Staiger (SURFsara)
 
+**Contributors**
+
+Merret Buurman (DKRZ)
+
 ## Synopsis
 This guide will take you through all steps to deploy an SSL-enabled Davrods instance connected to an SSL-enabled iRODS instance. 
 In principle you also only enable Davrods with SSL and direct it to an iRODS instance that is not SSL-enabled and vice-versa. In this guide we will also give hints which steps to omit to skip the SSL-enabling for Davrods and iRODS.
@@ -30,7 +34,7 @@ We are using an iRODS 4.1.10 server, please note that the installation of Davrod
 - Running iRODS instance on Centos 7 ([Guide](https://github.com/EUDAT-Training/B2SAFE-B2STAGE-Training/blob/develop/ExampleTrainings/iRODS-SysAdmin-Training/iRODS-CentOS-install.md))
 - *sudo* rights the machine iRODS runs on
 - Network address mapping:
- - Map the ip-address to the hostname and the fully qualified domain name
+ - Map the ip-address to the hostname and the fully qualified domain name (last line)
  
  ```sh
  vi /etc/hosts
@@ -41,6 +45,7 @@ We are using an iRODS 4.1.10 server, please note that the installation of Davrod
  ```
  
  - Configure the firewall
+Ports 80 (HTTP) and 443 (HTTPS) need to be open for outside connections.
 
  ```sh
     sudo iptables -A INPUT -i lo -j ACCEPT
@@ -68,7 +73,7 @@ We are using an iRODS 4.1.10 server, please note that the installation of Davrod
   iptables -L INPUT --line-numbers
   sudo iptables -D INPUT <line>
   ```
- - Port 443 is only needed if you want to use HTTPS and SSL encryption.
+ - Port 443 is only needed if you want to use HTTPS and SSL encryption for the HTTP server (Davrods).
 
 ## 1. Enable iRODS with SSL 
 ### (Skip if you do not want to use SSL encryption for your iRODS server)
@@ -84,7 +89,7 @@ In this section we will follow the [iRODS documentation - Section Server SSL Set
  openssl req -new -x509 -key irods.key -out irods.crt -days 365
  ```
  
- You are asked to provide some details. Upon login your users will have to use the common name of the server:
+ You are asked to provide some details.
  
  ```sh
  Country Name (2 letter code) [XX]:XX
@@ -95,7 +100,7 @@ Organizational Unit Name (eg, section) []:<group>
 Common Name (eg, your name or your server's hostname) []:<ip address or fqdn>
 Email Address []:<email>
  ```
- The common name will also be used by Davrods to address the iRODS server. 
+ The common name that you set here will also be used by all user clients and Davrods to address the iRODS server. It should correspond to the fqdn or the hostname you set in the */etc/hosts* file (see above).
  
  ```sh
  openssl dhparam -2 -out dhparams.pem 2048
@@ -110,10 +115,13 @@ Email Address []:<email>
 
  You need to set the server certificate (*irods.crt*) and its corresponding key (*irods.key*) and the certfificate from the "Certificate Authority" (here we use again *irods.crt* (usually you would have a *chain.pem*), if you use a different authority make sure all machines that run clients have this file installed). We also need to set the file defining how keys are exchanged (*dhparams.pem*). Finally we need to tell iRODS that we are using ssll verification by certificate.
  
+ The irods environment file for the unix service account can be in several locations, please check what is applicable to you:
  ```sh
- vi /var/lib/irods/.irods/irods_environment.json #ubuntu
- vi /home/irods/.irods/irods_environment.json #centos
+ vi /var/lib/irods/.irods/irods_environment.json # default
+ vi /home/irods/.irods/irods_environment.json # if irods service account has a home
+ ```
  
+ ``` sh
  "irods_client_server_policy": "CS_NEG_REQUIRE",
  "irods_ssl_certificate_chain_file": "/etc/irods/ssl/irods.crt",
  "irods_ssl_certificate_key_file": "/etc/irods/ssl/irods.key",
@@ -128,16 +136,16 @@ Email Address []:<email>
  iinit
  ils
  ```
- Turn back to your normal account
+ Turn back to your normal unix user account
  
  ```sh
  exit
  ```
 
-4. **Enabling other clients with SSL.**
+4. **Enabling other user clients with SSL.**
 
- Clients on other servers needs to have a copy of the *irods.crt* file.
- To enable another client you need to add the folowing to the *irods_environment.json*
+ Clients on other servers need to have a copy of the chain of trust pem-file (here the *irods.crt*) file.
+ All your iRODS users need to extend their *irods_environment.json* with
  
  ```sh
  "irods_client_server_negotiation": "request_server_negotiation",
@@ -152,7 +160,7 @@ Email Address []:<email>
 ## 2. Install Davrods
 1. **Installation requirements:**
  
- iRODS runtime 4.1.10
+ iRODS runtime 4.1.10 (only for iRODS 4.1.10)
 
  ```sh
  export SERVERPATH='ftp.renci.org/pub/irods/releases'
@@ -160,6 +168,11 @@ Email Address []:<email>
  ftp://$SERVERPATH/4.1.10/centos7/irods-runtime-4.1.10-centos7-x86_64.rpm
  sudo yum install irods-runtime-4.1.10-centos7-x86_64.rpm
  ```
+ 
+ Note if you do not install Davrods on the same server that also runs the iRODS server you need one of the following packages to be installed (only for iRODS 4.1.X):
+ - icommands
+ - iRODS resource server
+ - iRODS icat
 
 2. **Install the Apache HTTP server**
 
@@ -167,7 +180,14 @@ Email Address []:<email>
  sudo yum install httpd
  sudo service httpd start
  ```
- Test whether the httpd service runs by opening a browser and typing in the fully qualified domain name of your server or its ip address. Make sure port 80 is open.
+ Test whether the httpd service runs by opening a browser and typing in the fully qualified domain name of your server or its ip address. You should see the HTTP testing page. Make sure port 80 is open.
+ 
+ **Trouble shooting: SELinux keeps the HTTP server to connect to port 1247**
+ In case you use SELinux, you need to make sure that https may connect to 1247. Otherwise, you may run into an Internal Server Error. If an Internal Server Error occurs, please check the SELinux audit logs (e.g. in /var/log/audit/audit.log) for a line similar to this:
+
+```sh
+type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  pid=7658 comm="httpd" dest=1247 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket
+```
  
 3. **Download and install Davrods**
  
@@ -223,8 +243,8 @@ Email Address []:<email>
   ```
 
 5. **Edit the /etc/httpd/irods/irods_environment.json**
- - Replace the "irods_host" with the server name defined in the SSL step
- - Replace the "irods_zone_name" with your zone name
+ - Replace the "irods\_host" with the server name defined in the SSL step
+ - Replace the "irods\_zone\_name" with your zone name
  - "irods\_client\_server\_policy" should be "CS\_NEG\_REQUIRE" (only for SSL, otherwise )
  - irods\_ssl\_verify\_server" should be "cert" (only for SSL)
  - "irods\_client\_server\_negotiation": "request\_server\_negotiation" (only for SSL)
@@ -303,7 +323,24 @@ Email Address []:<email>
  ```
 
 7. **Test Davrods.** 
- Try to connect to the iRODS server with a webdav client like cyberduck.
+ Try to connect to the iRODS server with a webdav client like cyberduck or try to mount it from a different unix machine.
+ You can mount filesystems supporting webDav with:
+ 
+ ```sh
+ sudo apt-get install davfs2 #ubuntu
+ sudo yum install davfs2 #centos
+ ```
+ 
+ And then mount your iRODS logical namespace with:
+ 
+ - FQDN: common name of the server running Apache HTTP (in case u you enbled it with SSL) or the fully qualified domain name of the server running Apache HTTP (for HTTP only)
+ 
+ ```sh
+ sudo mkdir /mnt/mytest/webdav/foo
+ mount -t davfs http://<FQDN>/ /mnt/mytest/webdav/foo # http-enabled Davrods
+ mount -t davfs https://<FQDN>/ /mnt/mytest/webdav/foo # https-enabled Davrods
+ ```
+ 
    
 ## Configurations and remarks
 
@@ -361,7 +398,7 @@ Email Address []:<email>
   | Apache HTTP  | iRODS |  Configuration |
 |---|---|---|
 | SSL-enabled  | SSL-enabled | Follow all steps in this guide, use `irods_environment.json` 2.5 a) |
-| SSL-enabled  | no SSL | Skip Section 1, create certificates for HTTP server and use them in 2.4, use `irods_environment.json` 2.5 b) |
+| SSL-enabled  | no SSL | Skip Section 1, create certificates for the HTTP server and use them in 2.4, use `irods_environment.json` 2.5 b) |
 | no SSL (not advised) | SSL-enabled | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 a) |
 | no SSL (not advised) | no SSL | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 b) |
 
