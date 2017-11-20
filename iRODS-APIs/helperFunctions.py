@@ -1,6 +1,6 @@
 """
-@licence: The MIT License (MIT)
-@Copyright (c) 2016, Christine Staiger (SURFsara)
+@licence: Apache 2.0
+@Copyright (c) 2017, Christine Staiger (SURFsara)
 @author: Christine Staiger
 """
 import os
