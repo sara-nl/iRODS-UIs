@@ -140,7 +140,7 @@ Now we will modify the data object and create some contents:
 ```
 content = 'My contents!'
 with obj.open('w', options) as obj_desc:
-        obj_desc.write(content)
+    obj_desc.write(content)
 obj = sess.data_objects.get(iPath)
 ```
 
@@ -201,7 +201,7 @@ Now we select the files we are interested in according to our previous *iquest* 
 
 ```py
 filteredQuery = query.filter(DataObjectMeta.name == 'author' and \
-	DataObjectMeta.value == 'Lewis Carroll')
+    DataObjectMeta.value == 'Lewis Carroll')
 print filteredQuery.all()
 ```
 
@@ -220,13 +220,13 @@ We can now iterate over the results and build our iRODS paths (*COLL_NAME/DATA_N
 iPaths = []
 
 for item in results:
-	for k in item.keys():
-    	if k.icat_key == 'DATA_NAME':
-    		name = item[k]
-    	elif k.icat_key == 'COLL_NAME':
-    		coll = item[k]
-    	else:
-    		continue
+    for k in item.keys():
+        if k.icat_key == 'DATA_NAME':
+            name = item[k]
+        elif k.icat_key == 'COLL_NAME':
+            coll = item[k]
+        else:
+            continue
     iPaths.append(coll+'/'+name)
 ```
 
@@ -269,9 +269,9 @@ print dataDir
 
 ```py
 for iPath in iPaths:
-	buff = sess.data_objects.open(iPath, 'r').read()
-	with open(dataDir+'/'+os.path.basename(iPath), 'wb') as f:
-    	f.write(buff) 
+    buff = sess.data_objects.open(iPath, 'r').read()
+    with open(dataDir+'/'+os.path.basename(iPath), 'wb') as f:
+    f.write(buff) 
 ```
 
 **Note**: The content of the files is read into memory. Hence, this only works with smaller files or on a computer with large memory. There is also no on-the-fly checksum check.
@@ -296,20 +296,20 @@ filePaths = [dataDir +'/'+ os.path.basename(iPath) for iPath in iPaths]
 
 #Now for all files
 iRODSchecksum = \
-	[sess.data_objects.get(p).name+' :'+sess.data_objects.get(p).checksum 
-		for p in iPaths]
+    [sess.data_objects.get(p).name+' :'+sess.data_objects.get(p).checksum 
+        for p in iPaths]
 
 #calculate checksum for local file
 #md5
 fchecksum = \
-	[f +' :'+ hashlib.md5(open(f, 'rb').read()).hexdigest()
-		for f in filePaths]
+    [f +' :'+ hashlib.md5(open(f, 'rb').read()).hexdigest()
+        for f in filePaths]
 		
 #sha256
 fchecksum = \
-	[f +' :'+ base64.b64encode(
-                    hashlib.sha256(open(f, 'rb').read()).digest()).decode()
-		for f in filePaths]
+    [f +' :'+ base64.b64encode(
+        hashlib.sha256(open(f, 'rb').read()).digest()).decode()
+            for f in filePaths]
 ```
 
 ### Starting some processing on the data
@@ -376,7 +376,7 @@ for srcDir, dirs, files in os.walk(resultsDir):
         with open(srcDir+'/'+fname, 'r') as f:
             content = f.read()
         with obj.open('w', options) as obj_desc:
-        	  obj_desc.write(content)
+            obj_desc.write(content)
 ```
 
 **Exercise** Write aome code that checks all the checksums of the uploaded files. Verify that the folder hjas been transferred cortrectly.
@@ -408,12 +408,12 @@ We need to identify the iRODS collection that holds our data:
 
 ```py
 iPathResults = '/'+sess.zone+'/home/'+sess.username+'/'+\
-    os.path.basename(resultsDir)
+     os.path.basename(resultsDir)
 iColl = sess.collections.get(iPathResults)
 
 for iPath in iPaths:
-	iColl.metadata.add('SOURCE', iPath)
-	print "Metadata added to results", iColl
+    iColl.metadata.add('SOURCE', iPath)
+    print "Metadata added to results", iColl
 ```
 
 **Exercise** Restrieve the metadata for the results collection.
