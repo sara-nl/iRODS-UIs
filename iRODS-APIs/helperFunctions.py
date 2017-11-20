@@ -1,3 +1,8 @@
+"""
+@licence: The MIT License (MIT)
+@Copyright (c) 2016, Christine Staiger (SURFsara)
+@author: Christine Staiger
+"""
 import os
 
 #wordcount
