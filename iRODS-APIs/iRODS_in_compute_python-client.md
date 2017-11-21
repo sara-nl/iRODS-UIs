@@ -41,8 +41,8 @@ ipython
 We also prepared some handy python functions for you. You can find and import them from:
 
 ```py
-from ensure_dir import ensure_dir
-from wordcount import wordcount
+from helperFunctions import ensure_dir
+from helperFunctions import wordcount
 ```
 
 ### Creating the data directory on scratch
@@ -92,13 +92,12 @@ If you do not have such a file, we need to take security into account when creat
 import getpass
 pw = getpass.getpass().encode('base64')
 ```
-
 Now we can create an iRODS session:
+
 ```
 from irods.session import iRODSSession
-sess = iRODSSession(host='aliceZone', port=1247, user='alice', password=pw.decode('base64'), zone='aliceZone')
+sess = iRODSSession(host='alice-centos', port=1247, user='irods-user1', password=pw.decode('base64'), zone='aliceZone')
 ```
-
 and test wheter we have access:
 
 ```py
