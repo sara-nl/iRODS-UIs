@@ -1,26 +1,40 @@
 # Installation of Metalnx on Ubuntu 14.04 and Ubuntu 16.04
-This document describes how to install Metalnx on a Ubuntu machine with a working iRODS instance on the same machine. Note that this document closely follows the "Getting Started" page on the GitHub of metalnx-web with some adjustments: 
+This document describes how to install Metalnx on a Ubuntu machine with a working iRODS instance on the same machine. We also provide alterations that need to be made when working on a CentOS 7 system. 
+Note that this document closely follows the "Getting Started" page on the GitHub of metalnx-web with some adjustments: 
 
 https://github.com/Metalnx/metalnx-web/wiki/Getting-Started
 
+Metalnx runs in an Apache Tomcat HTTP server. In principle this server can also run on a different physical machine. In this tutorial however, we will place Metalnx on the machine where also the iRODS server runs.
+
 ## Environment
 Ubuntu 14.04 server
+Ubuntu 16.04 server or
+CentOS 7.3 server
 
 ## Prerequisites
 
-### 1. Update and upgrade if necessary
+Server needs to come with iRODS 4.1.10 or higher.
+
+### Update and upgrade if necessary
+
+- Ubuntu
 ```sh
 sudo apt-get update
 sudo apt-get upgrade
 ```
 
-### 2. Firewall settings and hostname settings
-#### Firewall
-
-Edit /etc/iptables/rules.v4:
-
+- CentOS
 ```sh
-sudo vim /etc/iptables/rules.v4
+sudo yum update
+sudo yum upgrade
+```
+
+### Firewall settings and hostname settings
+Before installing Tomcat and Metalnx we need to open the ports via which we will later connect to the HTTP server.
+In an Ubuntu system edit /etc/iptables/rules.v4:
+
+ ```sh
+ sudo vim /etc/iptables/rules.v4
 
 *filter
 :INPUT ACCEPT [0:0]
@@ -52,7 +66,6 @@ sudo vim /etc/iptables/rules.v4
 -A INPUT -j DROP
 COMMIT
 ```
-
 In Ubuntu 14 it is enough to do a:
 
 ```sh
@@ -78,21 +91,17 @@ In Ubuntu 16 you need to do the following to save your iptables comfiguration:
  cat /etc/iptables/rules.v4
  reboot
  ```
- 
-### 2. Dependencies
-#### Java 8
+To alter the firewall in CentOS please follow [this guide](https://www.rosehosting.com/blog/how-to-open-ports-in-ubuntu-and-centos-using-iptables/).
+
+## Dependencies
+### Java 8
 Test whether your operating system already comes with Java 8:
 
 ```sh
 which java
 java -version
 ```
-E.g.
-
-
-
-
-
+You should use the latest java version 1.8.
 
 ```sh
 java version "1.8.0_144"
@@ -131,20 +140,18 @@ For CentOS 7 do:
 sudo yum install jre
 ```
 
-
-#### Python 2.7
+### Python 2.7
+Most operating systems come by default with python 2.7.
 
 ```sh
 which python
 python --version
 ```
-
-#### Tomcat Installation
+### Tomcat Installation
 
 ```sh
 sudo apt-get install -y tomcat7
 ```
-
 
 Try to restart Tomcat:
 
@@ -164,24 +171,29 @@ Test whether Tomcat7 is installed and reachable by openening a  browser and goin
 `http://<ip-address of server\>:8080`
 
 
-#### PostgreSQL 9.2 or higher
+### PostgreSQL 9.2 or higher
+Metalnx uses an own data base for user management. This data base can be a PostgreSQL database or a MySQL database. Here we explain how to setup Metalnx with PostgreSQL.
+
 If you install Metalynx on the same server as where the iRODS server is running on, you probably already have a PostgreSQL data base version 9.3.
 
-If you are working on a different machine then please install:
+If you are working on a different machine then please install on Ubuntu:
 
 ```sh
 sudo apt-get install postgresql postgresql-contrib
 sudo postgresql-setup initdb
-```
-
-
-```sh
 sudo apt-get install python-psycopg2
 ```
 
-The ```pg_hba.conf``` maybe needs to be edited which could be in ```/home```,```/var/lib/pgsql```, ```/var/lib/postgresql/[version]/```, ```/opt/postgres/```, ```/etc/postgresql/[version]/main```, etc. 
+On CentOS:
 
-Open in text editor and find the following lines:
+```sh
+sudo yum install postgresql-server
+sudo service postgresql initdb
+```
+
+The ```pg_hba.conf``` might need to be edited. The file could be in ```/home```,```/var/lib/pgsql```, ```/var/lib/postgresql/[version]/```, ```/opt/postgres/```, ```/etc/postgresql/[version]/main```, etc. 
+
+Open in text editor and alter the following lines if necessary:
 
 ```sh
 host	all 	all 	127.0.0.1/32		ident
@@ -195,10 +207,9 @@ host	all 	all 	127.0.0.1/32		md5
 host	all 	all 	::1/128				md5
 ```
 
-Again, it could be that this is already done correctly during the iRODS installation.
+### MySQL installation
+If you alreay installed PostgreSQL, you can skip this step!
 
-
-#### MySQL installation
 During the Metalnx setup script you can choose to either use PostgreSQL or MySQL for the Metalnx Database. Here we choose PostgreSQL. However, if you want to use MySQL, you should install MySQL server 5.6 or higher. Note that the instructions to set up the MySQL database can be followed on the Metalnx 'Getting Started' pages. In Ubuntu 16 these packages are not part of the standard software packages. So for Ubuntu 16 you have to add it to the repository:
 
 ```sh
@@ -222,14 +233,9 @@ Also install mysqldv:
 sudo apt-get install python-mysqldb
 ```
 
+## Install Metalnx
 
-
-
-
-
-### 3. Install Metalnx
-
-#### PostgreSQL
+### PostgreSQL
 Become the user ```postgres``` using the command:
 
 ```sh
@@ -247,14 +253,14 @@ GRANT ALL PRIVILEGES ON DATABASE "metalnx" TO metalnx;
 exit
 ```
 
-#### Set iRODS Negotiation
-Before running the Metalnx setup script, make sure your iRODS negotiation parameters are correct. By default, iRODS is configured as  ```CS_NEG_DONT_CARE``` in the ```core.re``` file, which means that the server can use SSL or not to communicate with the client. ```CS_NEG_REQUIRE``` and ```CS_NEG_REFUSE``` can also be used. ```CS_NEG_REQUIRE``` means that iRODS will always use SSL communication while ```CS_NEG_REFUSE``` tells iRODS not to use SSL at all. 
+### Set iRODS Negotiation
+Now we need to configure the communication between the HTTP server and the iRODS server. You can choose to encrypt the communication with SSL. Here we show how a plain communication will be setup withput any encryption.
 
-<!--
-For now we will not use SSL. We will change the ```core.re``` file directly (note that in the "Getting Started" page of the Metalnx wiki, other options are presented). 
--->
+By default, iRODS is configured as  ```CS_NEG_DONT_CARE``` in the ```core.re``` file, which means that the server can use SSL or not to communicate with the client. ```CS_NEG_REQUIRE``` and ```CS_NEG_REFUSE``` can also be used. ```CS_NEG_REQUIRE``` means that iRODS will always use SSL communication while ```CS_NEG_REFUSE``` tells iRODS not to use SSL at all. 
 
-##### No SSL
+
+**No SSL encryption between iRODS and the HTTP server**
+
 Open ```/etc/irods/core.re``` in a text editor. Warning: be very carefull with the file as it can break your iRODS instance very easily. Replace:
 
 ```acPreConnect(*OUT) { *OUT="CS_NEG_DONT_CARE"; }```
@@ -274,13 +280,14 @@ Also, adjust the environment-json:
  ...
  ```
 
-##### Using SSL
+**Using an SSL encrypted communication between iRODS and the HTTP server**
+
 If you want to use SSL, you first have to configure iRODS with SSL.
 
 1. **Generate the SSL key and certificate** on the server that runs iRODS.
-Remember the names you gave to the files: `irods.key`, `irods.crt`. Also note that you can change the number of days (now 365) for the certificate. In this example, the user is called 'rods'. 
+ Remember the names you gave to the files: `irods.key`, `irods.crt`. Also note that you can change the number of days (now 365) for the certificate. In this example, the user is called 'rods'. 
 
-```sh
+ ```sh
  sudo su - rods
  mkdir /etc/irods/ssl
  cd /etc/irods/ssl
@@ -288,8 +295,6 @@ Remember the names you gave to the files: `irods.key`, `irods.crt`. Also note th
  chmod 600 irods.key
  openssl req -new -x509 -key irods.key -out irods.crt -days 365
  ```
- 
-  
  You are asked to provide some details. Upon login your users will have to use the common name of the server:
  
  ```sh
@@ -312,7 +317,7 @@ And finally create the dhparams.pem file.
  ```sh
  acPreConnect(*OUT) { *OUT="CS_NEG_REQUIRE"; }
  ```
-3. **Adjust the environment-json for the irods service account.**
+3. **Adjust the environment-json for the irods service account**
 
  You need to set the server certificate (*irods.crt*) and its corresponding key (*irods.key*) and the certificate from the "Certificate Authority" (here we use again *irods.crt* (usually you would have a *chain.pem*), if you use a different authority make sure all machines that run clients have this file installed). We also need to set the file defining how keys are exchanged (*dhparams.pem*). Finally we need to tell iRODS that we are using ssl verification by certificate.
  
@@ -335,9 +340,21 @@ And finally create the dhparams.pem file.
  ```
  
  If the connections fails due to the SSL connection, check if all files are set correctly in the environment-json and core.re file.
+
+4. **Inform your users.**  Please note, that when you enable your iRODS server with SSL your users will have to adjust their *irods_environment.json* file and you will need to provide them with the so-called *chain.pem*, e.g. in our case the file needs to be extende with:
+
+ ```sh
+"irods_client_server_negotiation": "request_server_negotiation",
+"irods_client_server_policy": "CS_NEG_REQUIRE",
+"irods_ssl_ca_certificate_file": "</path/to>/irods.crt",
+"irods_encryption_key_size": 32,
+"irods_encryption_salt_size": 8,
+"irods_encryption_num_hash_rounds": 16,
+"irods_encryption_algorithm": "AES-256-CBC"
+ ```
  
- ##### SSL and Metalnx
- For Metalnx, we need to tell the Java Virtual Machine to trust the irods certificate created earlier. This can be done by running the following command (note that you will be asked to create a password):
+**Enable Metalnx with SSL**
+For Metalnx, we need to tell the Java Virtual Machine to trust the irods certificate created earlier. This can be done by running the following command (note that you will be asked to create a password):
 
 ```sh
 cd /etc/irods/ssl
@@ -354,14 +371,14 @@ JAVA_OPTS="-Djavax.net.ssl.trustStore=/etc/irods/ssl/irodskeystore -Djavax.net.s
 
 Don't forget to replace ```<keystore-password>``` with the password you created earlier.
 
+Please note, that when you work on two different servers you need two different certificates, one for the HTTP/Metalnx server and one for the iRODS server, and you need to install the chain of trust (i.e. exchange the chain.pem or \*.crt files and store them in dedicated folders). We do not provide this information in this tutorial. 
 
-#### Package Installation
+### Download and install the software
 
-Ubuntu
+For Ubuntu do:
 ```sh
 wget -O emc-metalnx-webapp-1.1.1-3.deb https://bintray.com/metalnx/deb/download_file?file_path=pool%2Fe%2Femc-metalnx-web%2Femc-metalnx-webapp-1.1.1-3.deb
 ```
-
 Install the Metalnx application using the command:
 
 ```sh
@@ -370,7 +387,7 @@ sudo dpkg -i emc-metalnx-webapp-1.X.X-X.noarch.deb
 
 Note the 'X' in the name of the ```.deb``` file, which should be replaced with the correct version number of Metalnx you downloaded.
 
-Centos:
+For CentOS you need to do:
 
 ```sh
 wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.1.1-3.noarch.rpm
@@ -378,8 +395,7 @@ sudo yum install java-devel
 sudo rpm -i download_file\?file_path\=emc-metalnx-webapp-1.1.1-3.noarch.rpm
 ```
 
-
-#### Setup Metalnx
+## Configure Metalnx
 The Metalnx installation package comes with a setup script. The script will help to setup the Metalnx in according to your environment. Once the rpm or deb package is installed, run the Metalnx setup script, as root:
 
 ```sh
@@ -521,7 +537,7 @@ http://<ip-address>:8080/emc-metalnx-web/login/
 https://<ip-address>:8443/emc-metalnx-web/login/
 ```
 
-### 4. Usage
+##. Usage
 
 If you go to the URL you are presented a simple login screen which asks for your iRODS username and password. 
 
@@ -531,6 +547,4 @@ Admin users have more functionaly and can view the resource tree, add resources,
 
 #### Some quirks
 - Folders can not be added at once via the Metalnx interface. 
-- When selecting a data object, almost every action does not work except for the action 'remove'. 
-- Download (iget) of data objects also does not work and only shows a new empty tab with the suffix 'fileOperation/download/'. 
-- Metadata templates seem nice. You can specify a certain list of metadata that in principle you can immediately add to a file. However,this does not seem to work
+- Not all functionality is tested for iRODS federaions
