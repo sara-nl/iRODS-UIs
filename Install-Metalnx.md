@@ -125,7 +125,11 @@ export JAVA_HOME=/usr/lib/jvm/java-8-<provider>/
 
 By default Java will be installed under */usr/lib/jvm*. If you installed Java manually you might have manually set a different ```JAVA_HOME```.
 
+For CentOS 7 do:
 
+```sh
+sudo yum install jre
+```
 
 
 #### Python 2.7
@@ -141,10 +145,19 @@ python --version
 sudo apt-get install -y tomcat7
 ```
 
+
 Try to restart Tomcat:
 
 ```sh
 sudo service tomcat7 restart
+```
+
+For CentOS do:
+
+```sh
+sudo yum install tomcat
+sudo yum install tomcat-webapps tomcat-admin-webapps
+sudo systemctl -l restart tomcat
 ```
 
 Test whether Tomcat7 is installed and reachable by openening a  browser and going to the page:
