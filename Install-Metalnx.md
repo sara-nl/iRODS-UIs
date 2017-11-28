@@ -350,7 +350,7 @@ Please note, that when you work on two different servers you need two different 
 
 For Ubuntu do:
 ```sh
-wget -O emc-metalnx-webapp-1.1.1-3.deb https://bintray.com/metalnx/deb/download_file?file_path=pool%2Fe%2Femc-metalnx-web%2Femc-metalnx-webapp-1.1.1-3.deb
+wget -O emc-metalnx-webapp-1.2.1-4.deb https://bintray.com/metalnx/deb/download_file?file_path=pool%2Fe%2Femc-metalnx-web%2Femc-metalnx-webapp-1.2.1-4.deb
 ```
 Install the Metalnx application using the command:
 
@@ -363,7 +363,7 @@ Note the 'X' in the name of the ```.deb``` file, which should be replaced with t
 For CentOS you need to do:
 
 ```sh
-wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.1.1-3.noarch.rpm
+wget wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.2.1-4.noarch.rpm
 sudo yum install java-devel
 sudo rpm -i download_file\?file_path\=emc-metalnx-webapp-1.1.1-3.noarch.rpm
 ```
