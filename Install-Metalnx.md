@@ -357,6 +357,7 @@ Don't forget to replace ```<keystore-password>``` with the password you created 
 
 #### Package Installation
 
+Ubuntu
 ```sh
 wget -O emc-metalnx-webapp-1.1.1-3.deb https://bintray.com/metalnx/deb/download_file?file_path=pool%2Fe%2Femc-metalnx-web%2Femc-metalnx-webapp-1.1.1-3.deb
 ```
@@ -368,6 +369,15 @@ sudo dpkg -i emc-metalnx-webapp-1.X.X-X.noarch.deb
 ```
 
 Note the 'X' in the name of the ```.deb``` file, which should be replaced with the correct version number of Metalnx you downloaded.
+
+Centos:
+
+```sh
+wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.1.1-3.noarch.rpm
+sudo yum install java-devel
+sudo rpm -i download_file\?file_path\=emc-metalnx-webapp-1.1.1-3.noarch.rpm
+```
+
 
 #### Setup Metalnx
 The Metalnx installation package comes with a setup script. The script will help to setup the Metalnx in according to your environment. Once the rpm or deb package is installed, run the Metalnx setup script, as root:
