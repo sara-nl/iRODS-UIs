@@ -520,4 +520,4 @@ Admin users have more functionaly and can view the resource tree, add resources,
 
 #### Some quirks
 - Folders can not be added at once via the Metalnx interface. 
-- Not all functionality is tested for iRODS federaions
+- Does not support federations
