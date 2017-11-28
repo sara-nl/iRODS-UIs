@@ -7,8 +7,7 @@ https://github.com/Metalnx/metalnx-web/wiki/Getting-Started
 Metalnx runs in an Apache Tomcat HTTP server. In principle this server can also run on a different physical machine. In this tutorial however, we will place Metalnx on the machine where also the iRODS server runs.
 
 ## Environment
-Ubuntu 14.04 server
-Ubuntu 16.04 server or
+Ubuntu 14.04 server, Ubuntu 16.04 server or
 CentOS 7.3 server
 
 ## Prerequisites
@@ -172,7 +171,7 @@ Test whether Tomcat7 is installed and reachable by openening a  browser and goin
 
 
 ### PostgreSQL 9.2 or higher
-Metalnx uses an own data base for user management. This data base can be a PostgreSQL database or a MySQL database. Here we explain how to setup Metalnx with PostgreSQL.
+Metalnx uses an own data base for user management. This data base can be a PostgreSQL database or a MySQL database. Here we explain how to setup Metalnx with PostgreSQL. If you want to setup Metalnx with MySQL you can consult the respective step in the [general instructions](https://github.com/Metalnx/metalnx-web/wiki/Getting-Started).
 
 If you install Metalynx on the same server as where the iRODS server is running on, you probably already have a PostgreSQL data base version 9.3.
 
@@ -207,35 +206,9 @@ host	all 	all 	127.0.0.1/32		md5
 host	all 	all 	::1/128				md5
 ```
 
-### MySQL installation
-If you alreay installed PostgreSQL, you can skip this step!
-
-During the Metalnx setup script you can choose to either use PostgreSQL or MySQL for the Metalnx Database. Here we choose PostgreSQL. However, if you want to use MySQL, you should install MySQL server 5.6 or higher. Note that the instructions to set up the MySQL database can be followed on the Metalnx 'Getting Started' pages. In Ubuntu 16 these packages are not part of the standard software packages. So for Ubuntu 16 you have to add it to the repository:
-
-```sh
-#Ubuntu 16
-apt-get install software-properties-common 
-sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty universe'
-sudo apt-get update
-```
-
-And subsequently install MySQL server and client, which is the same command for Ubuntu 14 and 16:
-
-```sh
-#Ubuntu 14 and 16
-sudo apt install mysql-server-5.6
-sudo apt install mysql-client-5.6
-```
-
-Also install mysqldv:
-
-```sh
-sudo apt-get install python-mysqldb
-```
-
 ## Install Metalnx
-
 ### PostgreSQL
+Now we will create the user database for Metalnx.
 Become the user ```postgres``` using the command:
 
 ```sh
@@ -253,7 +226,7 @@ GRANT ALL PRIVILEGES ON DATABASE "metalnx" TO metalnx;
 exit
 ```
 
-### Set iRODS Negotiation
+### Configure the iRODS server Negotiation
 Now we need to configure the communication between the HTTP server and the iRODS server. You can choose to encrypt the communication with SSL. Here we show how a plain communication will be setup withput any encryption.
 
 By default, iRODS is configured as  ```CS_NEG_DONT_CARE``` in the ```core.re``` file, which means that the server can use SSL or not to communicate with the client. ```CS_NEG_REQUIRE``` and ```CS_NEG_REFUSE``` can also be used. ```CS_NEG_REQUIRE``` means that iRODS will always use SSL communication while ```CS_NEG_REFUSE``` tells iRODS not to use SSL at all. 
@@ -537,7 +510,7 @@ http://<ip-address>:8080/emc-metalnx-web/login/
 https://<ip-address>:8443/emc-metalnx-web/login/
 ```
 
-##. Usage
+## Usage
 
 If you go to the URL you are presented a simple login screen which asks for your iRODS username and password. 
 
