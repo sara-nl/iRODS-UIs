@@ -418,3 +418,15 @@ for iPath in iPaths:
 **Exercise** Restrieve the metadata for the results collection.
 
 **Solution** `[(item.name, item.value, item.units) for item in iColl.metadata.items()]`
+
+## Notes
+- Setting ACLs:
+ ```py
+ # Set ACLS
+ acl = iRODSAccess('read', coll.path, 'public', session.zone)
+ session.permissions.set(acl)
+
+ acl = iRODSAccess('inherit', coll.path,  session.zone)
+ coll = session.collections.get('/aliceZone/home/public/b2share')
+ session.permissions.set(acl)
+ ```
