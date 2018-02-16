@@ -171,7 +171,7 @@ If you are installing Davrods on a different server than the iRODS server (or yo
  cd /etc/ssl/certs
  sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout davrods.key -out davrods.crt
  ```
- Later in the webdav configiration we need to provide these two files.
+ Later in the webdav configuration we need to provide these two files.
   
 ## 3. Install Davrods
 1. **Installation requirements:**
