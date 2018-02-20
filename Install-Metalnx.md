@@ -521,3 +521,4 @@ Admin users have more functionaly and can view the resource tree, add resources,
 #### Some quirks
 - Folders can not be added at once via the Metalnx interface. 
 - Does not support federations
+- No ACL settings for users

@@ -22,7 +22,13 @@ In this tutorial we will deploy all software, i.e. Apache HTTP server and Davrod
 
 Since there is no installation package of Davrods for Ubuntu yet, we use a Centos 7 machine.
  
-We are using an iRODS 4.1.10 server, please note that the installation of Davrods slightly differs for iRODS 4.2.1.
+We are using an iRODS 4.1.11 server, please note that the installation of Davrods slightly differs for iRODS 4.2.1.
+
+### Compatability
+|iRODS | Davrods
+|----|----|
+|4.1.10 or higher | 4.1_X |
+|4.2.X | 4.2_X |
 
 ### Abbreviations
 | Abbr  | Meaning | 
@@ -156,16 +162,26 @@ Email Address []:<email>
  "irods_encryption_num_hash_rounds": 16,
  "irods_encryption_algorithm": "AES-256-CBC"
  ```
+ 
+## 2. Create certificates for HTTP server
+If you are installing Davrods on a different server than the iRODS server (or you did not enable your iRODS verser with SSL) and you would like to use HTTPS instead of HTTP you will need to create certificates for the HTTP server.
+
+- Create certificate and key
+ ```sh
+ cd /etc/ssl/certs
+ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout davrods.key -out davrods.crt
+ ```
+ Later in the webdav configuration we need to provide these two files.
   
-## 2. Install Davrods
+## 3. Install Davrods
 1. **Installation requirements:**
  
- iRODS runtime 4.1.10 (only for iRODS 4.1.10)
+ iRODS runtime 4.1.11 (only for iRODS 4.1.11, skip when using iRODS 4.2.X)
 
  ```sh
  export SERVERPATH='ftp.renci.org/pub/irods/releases'
  wget \
- ftp://$SERVERPATH/4.1.10/centos7/irods-runtime-4.1.10-centos7-x86_64.rpm
+ ftp://$SERVERPATH/4.1.11/centos7/irods-runtime-4.1.11-centos7-x86_64.rpm
  sudo yum install irods-runtime-4.1.10-centos7-x86_64.rpm
  ```
  
@@ -193,11 +209,12 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
  
  ```sh
  export SERVERPATH='github.com/UtrechtUniversity/davrods/releases'
- wget https://$SERVERPATH/download/4.1_1.1.1/davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
- sudo yum install davrods-4.1_1.1.1-1.el7.centos.x86_64.rpm
+ wget https://$SERVERPATH/download/4.1_X/davrods-4.1_X.el7.centos.x86_64.rpm
+ sudo yum install davrods-4.1_X.el7.centos.x86_64.rpm
  ```
+ For iRODS 4.2.X you need to download davrids-4.2_X.
  
- Since our Davrods will work with SSL you will also need to install the corresponding SSL package for the Apache HTTP server (skip if you do not use encryption):
+ Since our Davrods will work with SSL encryption you will also need to install the corresponding SSL package for the Apache HTTP server (skip if you do not use encryption):
  
  ```sh
  sudo yum install mod_ssl
@@ -226,7 +243,7 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
   SSLCertificateFile "/etc/irods/ssl/irods.crt"
   SSLCertificateKeyFile "/etc/irods/ssl/irods.key"
   ```
-  **NOTE:** We are reusing the certificates we generated for iRODS since iRODS and the HTTP server are running on the same machine. If you deploy Davrods on a separate machine, you need to create new certificates for that machine (matching the fqdn or IP address of that machine).
+  **NOTE:** We are reusing the certificates we generated for iRODS since iRODS and the HTTP server are running on the same machine. If you deploy Davrods on a separate machine, you need to provide the certificates from Step 2 (matching the fqdn or IP address of that machine and not the iRODS server).
    
  - If you used a different zone name than the standard zone name you need to change
   ```sh
@@ -241,7 +258,16 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
   ```sh
   #DavRodsExposedRoot User
   ```
-
+  
+ - If your HTTP server is running on a different machine than the iRODS server you will also need to set
+  ```sh
+          DavrodsServer localhost 1247
+  ```
+  to
+  ```
+      DavRodsServer <fqdn or ip of iRODS server> 1247
+  ```
+  
 5. **Edit the /etc/httpd/irods/irods_environment.json**
  - Replace the "irods\_host" with the server name defined in the SSL step
  - Replace the "irods\_zone\_name" with your zone name
@@ -402,4 +428,6 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
 | no SSL (not advised) | SSL-enabled | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 a) |
 | no SSL (not advised) | no SSL | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 b) |
 
+7. **Matching hostnames**
+ When working with certificates for your servers, note that you will have to address the servers the same way that you specified in the certificate. It is safe to use the fully qualified domain name or the IP address. If you insist on local names (for testing), set the /etc/host mapping accordingly.
 
