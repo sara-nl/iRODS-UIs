@@ -363,9 +363,9 @@ Note the 'X' in the name of the ```.deb``` file, which should be replaced with t
 For CentOS you need to do:
 
 ```sh
-wget wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.2.1-4.noarch.rpm
+wget https://bintray.com/metalnx/rpm/download_file?file_path=emc-metalnx-webapp-1.4.0-9.noarch.rpm
 sudo yum install java-devel
-sudo rpm -i download_file\?file_path\=emc-metalnx-webapp-1.1.1-3.noarch.rpm
+sudo rpm -i download_file\?file_path\=emc-metalnx-webapp-1.4.0-9.noarch.rpm
 ```
 
 ## Configure Metalnx
