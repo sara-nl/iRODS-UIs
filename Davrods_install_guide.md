@@ -22,7 +22,7 @@ In this tutorial we will deploy all software, i.e. Apache HTTP server and Davrod
 
 Since there is no installation package of Davrods for Ubuntu yet, we use a Centos 7 machine.
  
-We are using an iRODS 4.1.11 server, please note that the installation of Davrods slightly differs for iRODS 4.2.1.
+We are using an iRODS 4.1.11 server, please note that the installation of Davrods slightly differs for iRODS 4.2.1
 
 ### Compatability
 |iRODS | Davrods
@@ -34,6 +34,17 @@ We are using an iRODS 4.1.11 server, please note that the installation of Davrod
 | Abbr  | Meaning | 
 |---|---|
 | fqdn  | Fully qualified domain name, e.g. *hostname.domain.org*|
+
+
+### SSL enabling
+You can decide on SSL encryption, both servers, the http server runing davrods and the iRODS server can be SSL-neabled:
+  
+  | Apache HTTP  | iRODS |  Configuration |
+|---|---|---|
+| SSL-enabled  | SSL-enabled | Follow all steps in this guide, use `irods_environment.json` 2.5 a) |
+| SSL-enabled  | no SSL | Skip Section 1, create certificates for the HTTP server and use them in 2.4, use `irods_environment.json` 2.5 b) |
+| no SSL (not advised) | SSL-enabled | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 a) |
+| no SSL (not advised) | no SSL | Do not change port in 2.4, do not link to SSL certificates in 2.4, use `irods_environment.json` 2.5 b) |
 
 ## Prerequisites
 
