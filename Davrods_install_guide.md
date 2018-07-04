@@ -37,7 +37,7 @@ We are using an iRODS 4.1.11 server, please note that the installation of Davrod
 
 
 ### SSL enabling
-You can decide on SSL encryption, both servers, the http server runing davrods and the iRODS server can be SSL-neabled:
+You can decide on SSL encryption. Both servers, the http server running Davrods and the iRODS server can be SSL-neabled:
   
   | Apache HTTP  | iRODS |  Configuration |
 |---|---|---|
