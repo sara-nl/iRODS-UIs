@@ -180,7 +180,9 @@ If you are installing Davrods on a different server than the iRODS server (or yo
 - Create certificate and key
  ```sh
  cd /etc/ssl/certs
- sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout davrods.key -out davrods.crt
+ sudo openssl req \
+ -newkey rsa:2048 -nodes -keyout davrods.key \
+ -x509 -days 365000 -out davrods.crt
  ```
  Later in the webdav configuration we need to provide these two files.
   
