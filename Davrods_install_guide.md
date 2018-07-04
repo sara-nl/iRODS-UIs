@@ -195,7 +195,7 @@ If you are installing Davrods on a different server than the iRODS server (or yo
  export SERVERPATH='ftp.renci.org/pub/irods/releases'
  wget \
  ftp://$SERVERPATH/4.1.11/centos7/irods-runtime-4.1.11-centos7-x86_64.rpm
- sudo yum install irods-runtime-4.1.10-centos7-x86_64.rpm
+ sudo yum install irods-runtime-4.1.11-centos7-x86_64.rpm
  ```
  
  Note if you do not install Davrods on the same server that also runs the iRODS server you need one of the following packages to be installed (only for iRODS 4.1.X):
@@ -243,7 +243,7 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
   needs to become 
   
   ```sh
-  <VirtualHost *:443> # for https, when you enabled iRODS with SSL
+  <VirtualHost *:443> # for https, when you enabled the HTTP server with SSL
   ```
  - We need to set the server name for the HTTP server in the next line
   
@@ -253,8 +253,11 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
  - Next we need to tell the httpd server where to find the certificates for the SSL encryption.
   ```sh
   SSLEngine on # only when using SSL
-  SSLCertificateFile "/etc/irods/ssl/irods.crt"
+  SSLCertificateFile "/etc/ssl/certs/davrods.crt"
+  SSLCertificateKeyFile "/etc/ssl/certs/davrods.key"
+  # if you are reusing your certificates from an SSL enabled iRODS instance:
   SSLCertificateKeyFile "/etc/irods/ssl/irods.key"
+  SSLCertificateFile "/etc/irods/ssl/irods.crt"
   ```
   **NOTE:** We are reusing the certificates we generated for iRODS since iRODS and the HTTP server are running on the same machine. If you deploy Davrods on a separate machine, you need to provide the certificates from Step 2 (matching the fqdn or IP address of that machine and not the iRODS server).
    
@@ -331,7 +334,7 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
     "irods_cwd": "/homeZone/home/rods",
     "irods_user_name": "rods",
     "irods_zone_name": "homeZone",
-    "irods_client_server_policy": "CS_NEG_DONT_CARE",
+    "irods_client_server_policy": "CS_NEG_REFUSE",
     "irods_encryption_key_size": 32,
     "irods_encryption_salt_size": 8,
     "irods_encryption_num_hash_rounds": 16,
