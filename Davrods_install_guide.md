@@ -11,7 +11,7 @@ Merret Buurman (DKRZ)
 
 ## Synopsis
 This guide will take you through all steps to deploy an SSL-enabled Davrods instance connected to an SSL-enabled iRODS instance. 
-In principle you also only enable Davrods with SSL and direct it to an iRODS instance that is not SSL-enabled and vice-versa. In this guide we will also give hints which steps to omit to skip the SSL-enabling for Davrods and iRODS.
+In principle you can also only enable Davrods with SSL and direct it to an iRODS instance that is not SSL-enabled and vice-versa. In this guide we will also give hints which steps to omit to skip the SSL-enabling for Davrods and iRODS.
 
 With Davrods users can get access to iRODS by the webdav protocol and mount the iRODS logical filesystem to their workstations' filesystems or access iRODS with tools like Cyberduck or Filezilla.
 
@@ -40,44 +40,49 @@ We are using an iRODS 4.1.11 server, please note that the installation of Davrod
 - Running iRODS instance on Centos 7 ([Guide](https://github.com/EUDAT-Training/B2SAFE-B2STAGE-Training/blob/develop/ExampleTrainings/iRODS-SysAdmin-Training/iRODS-CentOS-install.md))
 - *sudo* rights the machine iRODS runs on
 - Network address mapping:
- - Map the ip-address to the hostname and the fully qualified domain name (last line)
+  - Map the ip-address to the hostname and the fully qualified domain name (last line)
  
- ```sh
- vi /etc/hosts
- 127.0.0.1   localhost irods-centos 
- ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+  ```sh
+  vi /etc/hosts
+  127.0.0.1   localhost irods-centos 
+  ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
- <ip-address>	irods-centos	<fqdn>
- ```
+  <ip-address>	irods-centos	<fqdn>
+  ```
  
  - Configure the firewall
+
 Ports 80 (HTTP) and 443 (HTTPS) need to be open for outside connections.
 
  ```sh
-    sudo iptables -A INPUT -i lo -j ACCEPT
-    sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-    sudo iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+    sudo su -
+    # standard + ssh
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
     # irods
-    sudo iptables -A INPUT -p tcp -m tcp --dport 1247 -j ACCEPT
-    sudo iptables -A INPUT -p tcp -m tcp --dport 1248 -j ACCEPT
-    sudo iptables -A INPUT -p tcp -m tcp --dport 20000:20199 -j ACCEPT
-    sudo iptables -A INPUT -p icmp -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 1247 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 1248 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 20000:20199 -j ACCEPT
+    iptables -A INPUT -p icmp -j ACCEPT
     # http
-    sudo iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
     # https
-    sudo iptables -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
  ```
  - Check the firewall and save it
  
  ```sh
-   sudo iptables -L
-   sudo service iptables save
+   sudo su -
+   iptables -L
+   service iptables save
  ```
  - Make sure there is no `DROP	all  -- anywhere	anywhere` somewhere in the middle. This might happen when you extend firewalls. 
   To delete the rule you can use:
   ```sh
+  sudo su -
   iptables -L INPUT --line-numbers
-  sudo iptables -D INPUT <line>
+  iptables -D INPUT <line>
   ```
  - Port 443 is only needed if you want to use HTTPS and SSL encryption for the HTTP server (Davrods).
 
@@ -92,7 +97,7 @@ In this section we will follow the [iRODS documentation - Section Server SSL Set
  cd /etc/irods/ssl
  openssl genrsa -out irods.key 2048
  chmod 600 irods.key
- openssl req -new -x509 -key irods.key -out irods.crt -days 365
+ openssl req -new -x509 -key irods.key -out irods.crt -days 3650
  ```
  
  You are asked to provide some details.
@@ -169,7 +174,7 @@ If you are installing Davrods on a different server than the iRODS server (or yo
 - Create certificate and key
  ```sh
  cd /etc/ssl/certs
- sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout davrods.key -out davrods.crt
+ sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout davrods.key -out davrods.crt
  ```
  Later in the webdav configuration we need to provide these two files.
   
@@ -193,8 +198,9 @@ If you are installing Davrods on a different server than the iRODS server (or yo
 2. **Install the Apache HTTP server**
 
  ```sh
- sudo yum install httpd
- sudo service httpd start
+ sudo su -
+ yum install httpd
+ systemctl start httpd
  ```
  Test whether the httpd service runs by opening a browser and typing in the fully qualified domain name of your server or its ip address. You should see the HTTP testing page. Make sure port 80 is open.
  
@@ -212,7 +218,7 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
  wget https://$SERVERPATH/download/4.1_X/davrods-4.1_X.el7.centos.x86_64.rpm
  sudo yum install davrods-4.1_X.el7.centos.x86_64.rpm
  ```
- For iRODS 4.2.X you need to download davrids-4.2_X.
+ For iRODS 4.2.X you need to download davrods-4.2_X.
  
  Since our Davrods will work with SSL encryption you will also need to install the corresponding SSL package for the Apache HTTP server (skip if you do not use encryption):
  
@@ -339,13 +345,15 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
  Now restart the Apache HTTP server:
  
  ```sh
- sudo service httpd restart
+ sudo su -
+ systemctl restart httpd
  ```
 6. **Install selinux**
 
  ```sh
- sudo setsebool -P httpd_can_network_connect true
- sudo chcon -t lib_t /var/lib/irods/plugins/network/lib*.so
+ sudo su -
+ setsebool -P httpd_can_network_connect true
+ chcon -t lib_t /var/lib/irods/plugins/network/lib*.so
  ```
 
 7. **Test Davrods.** 
@@ -353,8 +361,9 @@ type=AVC msg=audit(1504009961.761:1109613): avc:  denied  { name_connect } for  
  You can mount filesystems supporting webDav with:
  
  ```sh
- sudo apt-get install davfs2 #ubuntu
- sudo yum install davfs2 #centos
+ sudo su -
+ apt-get install davfs2 #ubuntu
+ yum install davfs2 #centos
  ```
  
  And then mount your iRODS logical namespace with:
